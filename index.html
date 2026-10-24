@@ -486,19 +486,29 @@
     const nextButton = document.getElementById("next-button");
     const quiz = document.getElementById("quiz");
     const result = document.getElementById("result");
+    let attemptQuestions = shuffleQuestions();
     let current = 0;
     let score = 0;
     let answered = false;
 
+    function shuffleQuestions() {
+      const shuffled = [...questions];
+      for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+      }
+      return shuffled;
+    }
+
     function renderQuestion() {
-      const item = questions[current];
+      const item = attemptQuestions[current];
       answered = false;
-      questionCount.textContent = `Pregunta ${current + 1} de ${questions.length}`;
+      questionCount.textContent = `Pregunta ${current + 1} de ${attemptQuestions.length}`;
       questionTitle.textContent = item.question;
       feedback.textContent = "";
       feedback.className = "feedback";
       nextButton.hidden = true;
-      nextButton.innerHTML = current === questions.length - 1
+      nextButton.innerHTML = current === attemptQuestions.length - 1
         ? 'Ver resultados <span aria-hidden="true">→</span>'
         : 'Siguiente pregunta <span aria-hidden="true">→</span>';
       answersEl.replaceChildren();
@@ -515,13 +525,13 @@
 
       const completed = current;
       progress.setAttribute("aria-valuenow", String(completed));
-      progressFill.style.width = `${completed / questions.length * 100}%`;
+      progressFill.style.width = `${completed / attemptQuestions.length * 100}%`;
     }
 
     function chooseAnswer(index) {
       if (answered) return;
       answered = true;
-      const item = questions[current];
+      const item = attemptQuestions[current];
       const buttons = [...answersEl.querySelectorAll(".answer")];
       buttons.forEach(button => { button.disabled = true; });
 
@@ -543,9 +553,9 @@
     }
 
     function showResult() {
-      progress.setAttribute("aria-valuenow", String(questions.length));
+      progress.setAttribute("aria-valuenow", String(attemptQuestions.length));
       progressFill.style.width = "100%";
-      const percentage = score / questions.length;
+      const percentage = score / attemptQuestions.length;
       const mood = percentage === 1
         ? { emoji: "🏆", title: "¡Misión perfecta!", text: "Has conquistado el cosmos. Tu conocimiento espacial está fuera de este mundo." }
         : percentage >= .7
@@ -558,7 +568,7 @@
         <div class="result-emoji" aria-hidden="true">${mood.emoji}</div>
         <h1>${mood.title}</h1>
         <p>${mood.text}</p>
-        <div class="final-score">Has acertado ${score} de ${questions.length}</div>
+        <div class="final-score">Has acertado ${score} de ${attemptQuestions.length}</div>
         <button class="primary-button" id="restart-button" type="button">Volver a explorar <span aria-hidden="true">↻</span></button>
       `;
       result.hidden = false;
@@ -567,6 +577,7 @@
     }
 
     function restart() {
+      attemptQuestions = shuffleQuestions();
       current = 0;
       score = 0;
       scoreLabel.textContent = "0";
@@ -577,7 +588,7 @@
     }
 
     nextButton.addEventListener("click", () => {
-      if (current === questions.length - 1) {
+      if (current === attemptQuestions.length - 1) {
         showResult();
       } else {
         current += 1;
